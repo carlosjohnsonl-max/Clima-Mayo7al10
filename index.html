@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Clima Santiago</title>
+<title>Clima Santiago · 7–10 Mayo</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 :root{
-  --sky:#07111f;--sky2:#0d1e30;--gold:#f0b429;--gold-dim:#a07828;
-  --rain:#60b4e0;--green:#3ec98a;--coral:#f06248;
+  --sky:#07111f;--gold:#f0b429;--rain:#60b4e0;--green:#3ec98a;--coral:#f06248;
   --text:#f0ece0;--text2:#c8d8e8;--muted:#4a6278;
   --divider:rgba(255,255,255,0.07);--card:rgba(255,255,255,0.04);
 }
@@ -94,7 +93,10 @@ const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const FECHAS=['2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
 
-function label(iso){const[y,m,d]=iso.split('-').map(Number),dt=new Date(y,m-1,d);return{day:DIAS[dt.getDay()],date:d+' '+MESES[m-1]}}
+function label(iso){
+  const[y,m,d]=iso.split('-').map(Number),dt=new Date(y,m-1,d);
+  return{day:DIAS[dt.getDay()],date:d+' '+MESES[m-1]};
+}
 function rainInfo(p){if(p<10)return['Sin lluvia','bd'];if(p<35)return['Leve','bl'];if(p<65)return['Moderada','bm'];return['Intensa','bh']}
 function uvInfo(u){if(u<=2)return['Bajo','bd'];if(u<=5)return['Moderado','bm'];return['Alto','bh']}
 function wdir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]}
@@ -109,12 +111,25 @@ function card(iso,tmax,tmin,rain,hum,wind,wdeg,uv,sun){
   return '<div class="card">'
     +'<div class="card-head"><span class="cday">'+lb.day+'</span><span class="cdate">'+lb.date+'</span></div>'
     +'<div class="metrics">'
-    +'<div class="m"><p class="mlbl">Temp.</p><div class="trow"><span class="tmax">'+tmaxR+'<span class="mu">°</span></span><span class="tmin">'+tminR+'<span class="mu">°</span></span></div><p class="msub">máx · mín</p></div>'
-    +'<div class="m"><p class="mlbl">Lluvia</p><div class="mval" style="color:#60b4e0">'+rainR+'<span class="mu">%</span></div><div class="trk"><div class="fill fr" data-w="'+rainR+'"></div></div><span class="bdg '+rc+'">'+rl+'</span></div>'
-    +'<div class="m"><p class="mlbl">Humedad</p><div class="mval" style="color:#3ec98a">'+humR+'<span class="mu">%</span></div><div class="trk"><div class="fill fh" data-w="'+humR+'"></div></div></div>'
-    +'<div class="m"><p class="mlbl">Viento</p><div class="mval">'+windR+'<span class="mu"> km/h</span></div><span class="wbadge">'+wd+'</span></div>'
-    +'<div class="m"><p class="mlbl">Índice UV</p><div class="mval">'+uvF+'</div><span class="bdg '+uc+'">'+ul+'</span></div>'
-    +'<div class="m"><p class="mlbl">Atardecer</p><div class="sun">'+sun+'</div></div>'
+    +'<div class="m"><p class="mlbl">Temp.</p>'
+    +'<div class="trow"><span class="tmax">'+tmaxR+'<span class="mu">°</span></span>'
+    +'<span class="tmin">'+tminR+'<span class="mu">°</span></span></div>'
+    +'<p class="msub">máx · mín</p></div>'
+    +'<div class="m"><p class="mlbl">Lluvia</p>'
+    +'<div class="mval" style="color:#60b4e0">'+rainR+'<span class="mu">%</span></div>'
+    +'<div class="trk"><div class="fill fr" data-w="'+rainR+'"></div></div>'
+    +'<span class="bdg '+rc+'">'+rl+'</span></div>'
+    +'<div class="m"><p class="mlbl">Humedad</p>'
+    +'<div class="mval" style="color:#3ec98a">'+humR+'<span class="mu">%</span></div>'
+    +'<div class="trk"><div class="fill fh" data-w="'+humR+'"></div></div></div>'
+    +'<div class="m"><p class="mlbl">Viento</p>'
+    +'<div class="mval">'+windR+'<span class="mu"> km/h</span></div>'
+    +'<span class="wbadge">'+wd+'</span></div>'
+    +'<div class="m"><p class="mlbl">Índice UV</p>'
+    +'<div class="mval">'+uvF+'</div>'
+    +'<span class="bdg '+uc+'">'+ul+'</span></div>'
+    +'<div class="m"><p class="mlbl">Atardecer</p>'
+    +'<div class="sun">'+sun+'</div></div>'
     +'</div></div>';
 }
 
@@ -134,22 +149,18 @@ async function load(){
     const r=await fetch(url),j=await r.json();
     if(j.error)throw new Error(j.reason);
 
-    const d=j.daily;
-    const hh=j.hourly.relativehumidity_2m;
+    const d=j.daily,hh=j.hourly.relativehumidity_2m;
 
-    // humedad promedio por día
     const humDia=d.time.map((_,i)=>{
       const s=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);
       return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):0;
     });
 
-    // puesta del sol en formato 24h
     const suns=d.sunset.map(s=>{
       const dt=new Date(s);
       return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
     });
 
-    // encontrar índices de los 4 días
     const html=FECHAS.map(fecha=>{
       const i=d.time.indexOf(fecha);
       if(i===-1)return '';
@@ -166,11 +177,13 @@ async function load(){
       );
     }).join('');
 
-    if(!html)throw new Error('Fechas aún fuera del rango del pronóstico');
+    if(!html.trim())throw new Error('Fechas aún fuera del rango del pronóstico');
 
     el.innerHTML=html;
     ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
-    requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll('.fill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),100));
+    requestAnimationFrame(()=>setTimeout(()=>
+      document.querySelectorAll('.fill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%')
+    ,100));
 
   }catch(e){
     el.innerHTML='<div class="loading" style="color:#f06248">'+e.message+'</div>';
@@ -179,9 +192,8 @@ async function load(){
 }
 load();
 </script>
-El bug estaba en que antes pasaba los 4 días como arrays de un solo elemento [data.tmax[i]], por eso solo mostraba el primero. Ahora cada día pasa sus valores directamente como parámetros independientes.Sonnet 4.6
 </body>
 </html>
 ```
 
-El cambio clave es `&forecast_days=16` en la URL — Open-Meteo puede entregar hasta 16 días, solo había que pedírselo. Sube esto a GitHub y los días 7-10 de mayo deberían aparecer perfectamente.
+Copia todo, reemplaza el `index.html` en GitHub y debería mostrar los 4 días correctamente.
