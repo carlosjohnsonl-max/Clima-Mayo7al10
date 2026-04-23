@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Clima Santiago</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+:root{
+  --sky:#07111f;--sky2:#0d1e30;--gold:#f0b429;--gold-dim:#a07828;
+  --rain:#60b4e0;--green:#3ec98a;--coral:#f06248;
+  --text:#f0ece0;--text2:#c8d8e8;--muted:#4a6278;
+  --divider:rgba(255,255,255,0.07);--card:rgba(255,255,255,0.04);
+}
+html{background:var(--sky)}
+body{background:var(--sky);color:var(--text);font-family:'DM Mono','Courier New',monospace;min-height:100dvh;padding:env(safe-area-inset-top,44px) env(safe-area-inset-right,0) env(safe-area-inset-bottom,34px) env(safe-area-inset-left,0);overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 120% 60% at 50% -5%,#12366b 0%,transparent 65%),radial-gradient(ellipse 60% 40% at 10% 80%,#071828 0%,transparent 60%),linear-gradient(180deg,#07111f 0%,#0a1a2e 60%,#060f1a 100%)}
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1.5px 1.5px at 8% 12%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1px 1px at 25% 6%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 52% 10%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1px 1px at 78% 4%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 92% 18%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 18% 35%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 68% 28%,rgba(255,255,255,.4) 0%,transparent 100%)}
+.wrap{position:relative;z-index:1;padding:1.5rem 1.25rem 2rem}
+.eyebrow{font-size:10px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:.35rem}
+h1{font-family:'Fraunces',Georgia,serif;font-size:2.4rem;font-weight:300;color:var(--text);line-height:1.05;margin-bottom:.3rem}
+h1 span{color:var(--gold);font-style:italic}
+.sub{font-size:10px;color:var(--muted);letter-spacing:.07em;margin-bottom:1.5rem}
+.ts{font-size:10px;color:var(--muted);margin-bottom:1rem;letter-spacing:.04em}
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid rgba(255,255,255,0.09);border-radius:18px;padding:1.1rem 1.25rem;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1px solid var(--divider)}
+.cday{font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.cdate{font-family:'Fraunces',Georgia,serif;font-size:1.3rem;font-weight:300;color:var(--text)}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.m{padding:.65rem .5rem;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider)}
+.m:nth-child(3n){border-right:none}
+.m:nth-last-child(-n+3){border-bottom:none}
+.mlbl{font-size:8.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;line-height:1.3}
+.mval{font-size:1.2rem;font-weight:500;line-height:1;color:var(--text)}
+.mu{font-size:.7rem;font-weight:400;color:var(--text2)}
+.msub{font-size:9px;color:var(--muted);margin-top:3px}
+.trow{display:flex;align-items:baseline;gap:6px}
+.tmax{color:var(--coral);font-size:1.5rem;font-weight:500}
+.tmin{color:var(--text2);font-size:1rem;font-weight:400}
+.trk{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:5px 0 4px;overflow:hidden}
+.fill{height:100%;border-radius:2px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.fr{background:var(--rain)}.fh{background:var(--green)}
+.bdg{display:inline-block;font-size:8px;letter-spacing:.06em;padding:2px 7px;border-radius:20px;text-transform:uppercase;margin-top:3px}
+.bd{background:rgba(62,201,138,.12);color:#3ec98a;border:1px solid rgba(62,201,138,.25)}
+.bl{background:rgba(96,180,224,.12);color:#60b4e0;border:1px solid rgba(96,180,224,.25)}
+.bm{background:rgba(240,180,41,.12);color:#f0b429;border:1px solid rgba(240,180,41,.25)}
+.bh{background:rgba(240,98,72,.12);color:#f06248;border:1px solid rgba(240,98,72,.25)}
+.sun{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:300;color:var(--gold);font-style:italic}
+.wbadge{display:inline-block;font-size:9px;padding:1px 6px;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--text2);margin-top:3px}
+.loading{padding:3rem;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.1em}
+.dot{animation:pulse 1.2s ease infinite;display:inline-block}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+.ftr{margin-top:1.5rem;font-size:9px;color:var(--muted);letter-spacing:.06em;text-align:center;line-height:2}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+.card:nth-child(1){animation:fadeUp .4s ease .05s both}
+.card:nth-child(2){animation:fadeUp .4s ease .12s both}
+.card:nth-child(3){animation:fadeUp .4s ease .19s both}
+.card:nth-child(4){animation:fadeUp .4s ease .26s both}
+@media(min-width:700px){
+  .wrap{max-width:1050px;margin:0 auto;padding:3rem 2rem}
+  .cards{flex-direction:row;gap:1px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden}
+  .card{border-radius:0;border:none;background:rgba(255,255,255,.03);flex:1;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .card-head{flex-direction:column;gap:2px}
+  .metrics{grid-template-columns:1fr}
+  .m{border-right:none;border-bottom:1px solid var(--divider);padding:.75rem 0}
+  .m:nth-last-child(-n+3){border-bottom:1px solid var(--divider)}
+  .m:last-child{border-bottom:none}
+  h1{font-size:clamp(1.8rem,4vw,2.8rem)}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="stars"></div>
+<div class="wrap">
+  <div style="animation:fadeUp .5s ease both">
+    <p class="eyebrow">Meteorología · Santiago, Chile</p>
+    <h1>Pronóstico <span>7–10 Mayo</span></h1>
+    <p class="sub">Temperatura · Lluvia · Humedad · Viento · UV · Puesta del sol</p>
+  </div>
+  <p class="ts" id="ts">Cargando...</p>
+  <div class="cards" id="cards">
+    <div class="loading">Consultando Open-Meteo<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+  </div>
+  <div class="ftr">Open-Meteo · Datos en tiempo real<br>33.45°S · 70.67°O · UTC−4</div>
+</div>
+<script>
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const FECHAS=['2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
+
+function label(iso){const[y,m,d]=iso.split('-').map(Number),dt=new Date(y,m-1,d);return{day:DIAS[dt.getDay()],date:d+' '+MESES[m-1]}}
+function rainInfo(p){if(p<10)return['Sin lluvia','bd'];if(p<35)return['Leve','bl'];if(p<65)return['Moderada','bm'];return['Intensa','bh']}
+function uvInfo(u){if(u<=2)return['Bajo','bd'];if(u<=5)return['Moderado','bm'];return['Alto','bh']}
+function wdir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]}
+
+function card(iso,i,data){
+  const lb=label(iso);
+  const tmax=Math.round(data.tmax[i]),tmin=Math.round(data.tmin[i]),
+        rain=Math.round(data.rain[i]),hum=Math.round(data.hum[i]),
+        wind=Math.round(data.wind[i]),wd=wdir(data.wdir[i]),
+        uv=parseFloat(data.uv[i]||0).toFixed(1),sun=data.sun[i],
+        [rl,rc]=rainInfo(rain),[ul,uc]=uvInfo(parseFloat(uv));
+  return '<div class="card">'
+    +'<div class="card-head"><span class="cday">'+lb.day+'</span><span class="cdate">'+lb.date+'</span></div>'
+    +'<div class="metrics">'
+    +'<div class="m"><p class="mlbl">Temp.</p><div class="trow"><span class="tmax">'+tmax+'<span class="mu">°</span></span><span class="tmin">'+tmin+'<span class="mu">°</span></span></div><p class="msub">máx · mín</p></div>'
+    +'<div class="m"><p class="mlbl">Lluvia</p><div class="mval" style="color:#60b4e0">'+rain+'<span class="mu">%</span></div><div class="trk"><div class="fill fr" data-w="'+rain+'"></div></div><span class="bdg '+rc+'">'+rl+'</span></div>'
+    +'<div class="m"><p class="mlbl">Humedad</p><div class="mval" style="color:#3ec98a">'+hum+'<span class="mu">%</span></div><div class="trk"><div class="fill fh" data-w="'+hum+'"></div></div></div>'
+    +'<div class="m"><p class="mlbl">Viento</p><div class="mval">'+wind+'<span class="mu"> km/h</span></div><span class="wbadge">'+wd+'</span></div>'
+    +'<div class="m"><p class="mlbl">Índice UV</p><div class="mval">'+uv+'</div><span class="bdg '+uc+'">'+ul+'</span></div>'
+    +'<div class="m"><p class="mlbl">Atardecer</p><div class="sun">'+sun+'</div></div>'
+    +'</div></div>';
+}
+
+async function load(){
+  const el=document.getElementById('cards'),ts=document.getElementById('ts');
+  try{
+    // forecast_days=16 para cubrir fechas a más de 7 días
+    const url='https://api.open-meteo.com/v1/forecast'
+      +'?latitude=-33.45&longitude=-70.67'
+      +'&daily=temperature_2m_max,temperature_2m_min'
+      +',precipitation_probability_max'
+      +',windspeed_10m_max,winddirection_10m_dominant'
+      +',uv_index_max,sunset'
+      +'&hourly=relativehumidity_2m'
+      +'&timezone=America%2FSantiago'
+      +'&forecast_days=16';
+
+    const r=await fetch(url),j=await r.json();
+    if(j.error)throw new Error(j.reason);
+
+    const d=j.daily,hh=j.hourly.relativehumidity_2m;
+
+    // filtrar solo los 4 días que nos interesan
+    const indices=d.time.map((t,i)=>FECHAS.includes(t)?i:-1).filter(i=>i>=0);
+
+    if(indices.length===0)throw new Error('Fechas aún fuera del rango del pronóstico');
+
+    const humDia=d.time.map((_,i)=>{const s=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):0});
+    const suns=d.sunset.map(s=>{const dt=new Date(s);return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false})});
+
+    const data={tmax:d.temperature_2m_max,tmin:d.temperature_2m_min,rain:d.precipitation_probability_max,hum:humDia,wind:d.windspeed_10m_max,wdir:d.winddirection_10m_dominant,uv:d.uv_index_max,sun:suns};
+
+    el.innerHTML=indices.map((i,n)=>card(d.time[i],n,{
+      tmax:[data.tmax[i]],tmin:[data.tmin[i]],rain:[data.rain[i]],
+      hum:[data.hum[i]],wind:[data.wind[i]],wdir:[data.wdir[i]],
+      uv:[data.uv[i]],sun:[data.sun[i]]
+    })).join('');
+
+    ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
+    requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll('.fill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%'),100));
+  }catch(e){
+    el.innerHTML='<div class="loading" style="color:#f06248">'+e.message+'</div>';
+    ts.textContent='';
+  }
+}
+load();
+</script>
+</body>
+</html>
+```
+
+El cambio clave es `&forecast_days=16` en la URL — Open-Meteo puede entregar hasta 16 días, solo había que pedírselo. Sube esto a GitHub y los días 7-10 de mayo deberían aparecer perfectamente.
