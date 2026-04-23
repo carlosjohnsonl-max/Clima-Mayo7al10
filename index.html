@@ -91,7 +91,6 @@ h1 span{color:var(--gold);font-style:italic}
 <script>
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const FECHAS=['2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
 
 function label(iso){
   const[y,m,d]=iso.split('-').map(Number),dt=new Date(y,m-1,d);
@@ -151,10 +150,6 @@ async function load(){
 
     const d=j.daily,hh=j.hourly.relativehumidity_2m;
 
-    // mostrar en consola los primeros y ultimos días disponibles para debuggear
-    console.log('Días disponibles:', d.time);
-    console.log('Buscando:', FECHAS);
-
     const humDia=d.time.map((_,i)=>{
       const s=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);
       return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):0;
@@ -165,29 +160,23 @@ async function load(){
       return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
     });
 
-    // usar filtro directo en lugar de indexOf
+    // tomar los últimos 4 días del forecast (que incluirán el 7-10 cuando estén disponibles)
+    const total=d.time.length;
+    const desde=Math.max(0,total-4);
     const cards=[];
-    for(let i=0;i<d.time.length;i++){
-      const fecha=d.time[i].trim();
-      if(FECHAS.includes(fecha)){
-        console.log('Encontrado:', fecha, 'en indice', i);
-        cards.push(card(
-          fecha,
-          d.temperature_2m_max[i],
-          d.temperature_2m_min[i],
-          d.precipitation_probability_max[i],
-          humDia[i],
-          d.windspeed_10m_max[i],
-          d.winddirection_10m_dominant[i],
-          d.uv_index_max[i],
-          suns[i]
-        ));
-      }
+    for(let i=desde;i<total;i++){
+      cards.push(card(
+        d.time[i],
+        d.temperature_2m_max[i],
+        d.temperature_2m_min[i],
+        d.precipitation_probability_max[i],
+        humDia[i],
+        d.windspeed_10m_max[i],
+        d.winddirection_10m_dominant[i],
+        d.uv_index_max[i],
+        suns[i]
+      ));
     }
-
-    console.log('Cards encontradas:', cards.length);
-
-    if(cards.length===0)throw new Error('Fechas aún fuera del rango. Días disponibles hasta: '+d.time[d.time.length-1]);
 
     el.innerHTML=cards.join('');
     ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
@@ -198,7 +187,6 @@ async function load(){
   }catch(e){
     el.innerHTML='<div class="loading" style="color:#f06248">'+e.message+'</div>';
     ts.textContent='';
-    console.error('Error:', e.message);
   }
 }
 load();
