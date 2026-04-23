@@ -151,6 +151,10 @@ async function load(){
 
     const d=j.daily,hh=j.hourly.relativehumidity_2m;
 
+    // mostrar en consola los primeros y ultimos días disponibles para debuggear
+    console.log('Días disponibles:', d.time);
+    console.log('Buscando:', FECHAS);
+
     const humDia=d.time.map((_,i)=>{
       const s=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);
       return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):0;
@@ -161,25 +165,31 @@ async function load(){
       return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
     });
 
-    const html=FECHAS.map(fecha=>{
-      const i=d.time.indexOf(fecha);
-      if(i===-1)return '';
-      return card(
-        fecha,
-        d.temperature_2m_max[i],
-        d.temperature_2m_min[i],
-        d.precipitation_probability_max[i],
-        humDia[i],
-        d.windspeed_10m_max[i],
-        d.winddirection_10m_dominant[i],
-        d.uv_index_max[i],
-        suns[i]
-      );
-    }).join('');
+    // usar filtro directo en lugar de indexOf
+    const cards=[];
+    for(let i=0;i<d.time.length;i++){
+      const fecha=d.time[i].trim();
+      if(FECHAS.includes(fecha)){
+        console.log('Encontrado:', fecha, 'en indice', i);
+        cards.push(card(
+          fecha,
+          d.temperature_2m_max[i],
+          d.temperature_2m_min[i],
+          d.precipitation_probability_max[i],
+          humDia[i],
+          d.windspeed_10m_max[i],
+          d.winddirection_10m_dominant[i],
+          d.uv_index_max[i],
+          suns[i]
+        ));
+      }
+    }
 
-    if(!html.trim())throw new Error('Fechas aún fuera del rango del pronóstico');
+    console.log('Cards encontradas:', cards.length);
 
-    el.innerHTML=html;
+    if(cards.length===0)throw new Error('Fechas aún fuera del rango. Días disponibles hasta: '+d.time[d.time.length-1]);
+
+    el.innerHTML=cards.join('');
     ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
     requestAnimationFrame(()=>setTimeout(()=>
       document.querySelectorAll('.fill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%')
@@ -188,12 +198,10 @@ async function load(){
   }catch(e){
     el.innerHTML='<div class="loading" style="color:#f06248">'+e.message+'</div>';
     ts.textContent='';
+    console.error('Error:', e.message);
   }
 }
 load();
 </script>
 </body>
 </html>
-```
-
-Copia todo, reemplaza el `index.html` en GitHub y debería mostrar los 4 días correctamente.
