@@ -50,6 +50,7 @@ h1 span{color:var(--gold);font-style:italic}
 .bh{background:rgba(240,98,72,.12);color:#f06248;border:1px solid rgba(240,98,72,.25)}
 .sun{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:300;color:var(--gold);font-style:italic}
 .wbadge{display:inline-block;font-size:9px;padding:1px 6px;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:var(--text2);margin-top:3px}
+.pending{padding:1.5rem .5rem;text-align:center;font-size:10px;letter-spacing:.1em;color:var(--muted)}
 .loading{padding:3rem;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.1em}
 .dot{animation:pulse 1.2s ease infinite;display:inline-block}
 .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
@@ -91,6 +92,7 @@ h1 span{color:var(--gold);font-style:italic}
 <script>
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const FECHAS=['2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
 
 function label(iso){
   const[y,m,d]=iso.split('-').map(Number),dt=new Date(y,m-1,d);
@@ -132,6 +134,14 @@ function card(iso,tmax,tmin,rain,hum,wind,wdeg,uv,sun){
     +'</div></div>';
 }
 
+function cardPendiente(iso){
+  const lb=label(iso);
+  return '<div class="card" style="opacity:.35">'
+    +'<div class="card-head"><span class="cday">'+lb.day+'</span><span class="cdate">'+lb.date+'</span></div>'
+    +'<div class="pending">Disponible pronto</div>'
+    +'</div>';
+}
+
 async function load(){
   const el=document.getElementById('cards'),ts=document.getElementById('ts');
   try{
@@ -160,13 +170,11 @@ async function load(){
       return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
     });
 
-    // tomar los últimos 4 días del forecast (que incluirán el 7-10 cuando estén disponibles)
-    const total=d.time.length;
-    const desde=Math.max(0,total-4);
-    const cards=[];
-    for(let i=desde;i<total;i++){
-      cards.push(card(
-        d.time[i],
+    const html=FECHAS.map(fecha=>{
+      const i=d.time.indexOf(fecha);
+      if(i===-1) return cardPendiente(fecha);
+      return card(
+        fecha,
         d.temperature_2m_max[i],
         d.temperature_2m_min[i],
         d.precipitation_probability_max[i],
@@ -175,10 +183,10 @@ async function load(){
         d.winddirection_10m_dominant[i],
         d.uv_index_max[i],
         suns[i]
-      ));
-    }
+      );
+    }).join('');
 
-    el.innerHTML=cards.join('');
+    el.innerHTML=html;
     ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
     requestAnimationFrame(()=>setTimeout(()=>
       document.querySelectorAll('.fill[data-w]').forEach(e=>e.style.width=e.dataset.w+'%')
@@ -193,3 +201,6 @@ load();
 </script>
 </body>
 </html>
+```
+
+Listo. Siempre muestra exactamente los 4 días fijos — los que ya tienen datos aparecen completos, y los que faltan aparecen con **"Disponible pronto"** en gris tenue. El 25 de abril ya deberían aparecer los 4 completos.
